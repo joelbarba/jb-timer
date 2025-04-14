@@ -1,5 +1,7 @@
 body {
-  color: gray;
+  color: #ffffff;
+  font-family: monospace;
+  font-size: 18px;
 }
 
 .container {
@@ -14,7 +16,7 @@ body {
   bottom: 0;
 }
 
-.left-timeline {
+#left-timeline {
   position: absolute;
   left: 0;
   top: 0;
@@ -22,7 +24,7 @@ body {
   border-right: 1px solid white;
   width: 15%
 }
-.top-timeline {
+#top-timeline {
   position: absolute;
   left: 15%;
   top: 0;
@@ -39,9 +41,9 @@ body {
 }
 #big-btn {
   position: absolute;
-  height: 50vw;
-  width: 50vw;
-  left: calc(50% - 25vw);
+  height: 58vw;
+  width: 58vw;
+  left: calc(50% - 29vw);
   bottom: 10%;
   border: 3px solid red;
   border-radius: 100%;
@@ -57,4 +59,34 @@ body {
 #big-btn:active {
   background: #b70000;
   box-shadow: inset -10px 10px 15px 2px #4f4f4f;
+}
+
+.top-buttons {
+  width: 100%;
+  display: flex;
+  height: 12%;
+}
+#start-btn, #reset-btn, #undo-btn {
+  flex: 1;
+  font-size: 5vw;
+}
+#start-btn {
+  margin: 2px 1px 2px 2px;
+} 
+#reset-btn {
+  margin: 2px 1px;
+}
+#undo-btn {
+  margin: 2px 2px 2px 1px;
+}
+.labels {
+  margin: 5px 10px;
+}
+
+
+#start-line {
+  background: yellow;
+  width: 1px;
+  height: 100%;
+  position: absolute;
 }
