@@ -42,19 +42,20 @@ function resetTimer() {
 
 let iniTime;      // Initial time for the whole counter
 let stepTime;     // Current contraction ini time
-let steps = []; // Contractions
+let steps = [];   // Contractions
+let offset = 0;
 
 const startLine = document.getElementById('start-line');
 const timelineEl = document.getElementById('left-timeline');
 const timelineHeight = Math.round(timelineEl.getBoundingClientRect().height);
 startLine.style.top = 0 + 'px';
 
-const maxSeconds = 5 * 60;
+const maxSeconds = 60 * 60;  // Total time on the left (vertical) timeline
 const pxPerMs = timelineHeight / maxSeconds / 1000;
 
 const currentContractionBox = document.getElementById('current-contraction-box');
 const currContWidth = Math.round(document.getElementById('top-timeline').getBoundingClientRect().width);
-const currPxPerMs = currContWidth / 60 / 1000;
+const currPxPerMs = currContWidth / 60 / 1000; // Total time on the top (horizontal)
 
 
 function undoStep() {
@@ -136,24 +137,46 @@ function render() {
       currentContractionBox.style.width = Math.round((new Date() - currentStep.ini) * currPxPerMs) + 'px';
     }
 
-    if (elapsedTime <= maxSeconds) { startLine.style.height = Math.round(elapsedTimeMs * pxPerMs) + 'px'; }
+    // If the time reaches the end, offset it a bit
+    if (elapsedTime - offset > maxSeconds) {
+      const delta = 10 * 60;  // Add 10 min (600sec)
+      offset += delta;
+      steps.forEach(step => { // Move all boxes up
+        const newTop = Math.round(+step.el.style.top.split('px')[0] - (delta * 1000 * pxPerMs));
+        step.el.style.top = newTop + 'px';
+      });
+    }
 
-
-    // Boxes Moving down
-    steps.filter(step => !step.isOut).forEach(step => {
+    let nowLine = (elapsedTimeMs - (offset * 1000)) * pxPerMs;
+    startLine.style.height = Math.round(nowLine) + 'px';
+    
+    // Print contraction boxes
+    steps.filter(step => !step.end).forEach(step => {
       if (step.ini) {
-        const bottom = Math.round((new Date() - step.ini) * pxPerMs);        
-        if (!step.end) {
-          step.el.style.top = 0 + 'px';
-          step.el.style.height = bottom + 'px';
-        } else {
-          const top = Math.round((new Date() - step.end) * pxPerMs);
-          step.el.style.top = top + 'px';
-          step.el.style.height = (bottom - top) + 'px';
-          if (top > timelineHeight) { step.isOut = true; }
-        }
+        const top = Math.round((step.ini - iniTime - (offset * 1000)) * pxPerMs);
+        step.el.style.top = top + 'px';
+        step.el.style.height = (nowLine - top) + 'px';
       }      
     });
+
+
+    // if (elapsedTime <= maxSeconds) { startLine.style.height = Math.round(nowLine) + 'px'; }
+
+    // Boxes Moving down
+    // steps.filter(step => !step.isOut).forEach(step => {
+    //   if (step.ini) {
+    //     const bottom = Math.round((new Date() - step.ini) * pxPerMs);        
+    //     if (!step.end) {
+    //       step.el.style.top = 0 + 'px';
+    //       step.el.style.height = bottom + 'px';
+    //     } else {
+    //       const top = Math.round((new Date() - step.end) * pxPerMs);
+    //       step.el.style.top = top + 'px';
+    //       step.el.style.height = (bottom - top) + 'px';
+    //       if (top > timelineHeight) { step.isOut = true; }
+    //     }
+    //   }      
+    // });
 
 
   }
