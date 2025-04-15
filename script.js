@@ -4,12 +4,19 @@ document.getElementById('stop-btn').addEventListener('click',  (event) => stopTi
 document.getElementById('reset-btn').addEventListener('click', (event) => resetTimer());
 document.getElementById('undo-btn').addEventListener('click',  (event) => undoStep());
 
-document.getElementById('big-btn').addEventListener('mousedown',  (event) => iniStep());
-document.getElementById('big-btn').addEventListener('mouseup',    (event) => endStep());
-document.getElementById('big-btn').addEventListener('touchstart', (event) => iniStep());
-document.getElementById('big-btn').addEventListener('touchend',   (event) => endStep());
+document.getElementById('big-btn').addEventListener('mousedown',  (e) => switchBtn(e));
+// document.getElementById('big-btn').addEventListener('mouseup',    (event) => endStep());
+document.getElementById('big-btn').addEventListener('touchstart', (e) => switchBtn(e, 'start'));
+// document.getElementById('big-btn').addEventListener('touchend',   (e) => switchBtn(e, 'stop'));
+// document.getElementById('big-btn').addEventListener('touchend',   (event) => endStep());
 
-let isTracking = false;
+function switchBtn(e, evName) {
+  e.stopPropagation();
+  e.preventDefault();
+  if (!stepTime) { iniStep(); } else { endStep(); }
+  // if (!stepTime && evName === 'start') { iniStep(); } 
+  // else if (stepTime && evName === 'stop') { endStep(); }
+}
 
 const timerEl = document.getElementById('timer');
 const contrEl = document.getElementById('contr-time');
@@ -70,30 +77,24 @@ function undoStep() {
 }
 
 
-function iniStep() {
-  if (!isTracking) {
-    stepTime = new Date();
-    const el = document.createElement('div');
-    el.setAttribute('id', 'step-' + steps.length);
-    el.setAttribute('class', 'contraction-box');
-    timelineEl.appendChild(el);
-    steps.push({ ini: stepTime, end: null, el });
-    if (steps.length > 1) {
-      const ms = (steps.at(-1).ini - steps.at(-2).end);
-      document.getElementById('time-since-last').textContent = `Time Since Last: ${formatContractionTime(ms)}`;
-    }
-    render();
-    isTracking = true;
-    document.getElementById('big-btn').setAttribute('class', 'tracking');
-    document.getElementById('big-btn').textContent = 'STOP';
-  } else {
-    isTracking = false;
+function iniStep() {  
+  stepTime = new Date();
+  const el = document.createElement('div');
+  el.setAttribute('id', 'step-' + steps.length);
+  el.setAttribute('class', 'contraction-box');
+  timelineEl.appendChild(el);
+  steps.push({ ini: stepTime, end: null, el });
+  if (steps.length > 1) {
+    const ms = (steps.at(-1).ini - steps.at(-2).end);
+    document.getElementById('time-since-last').textContent = `Time Since Last: ${formatContractionTime(ms)}`;
   }
+  render();
+  document.getElementById('big-btn').setAttribute('class', 'tracking');
+  document.getElementById('big-btn').textContent = 'STOP';
 }
 
 
 function endStep() {
-  if (isTracking) { return; }
   if (steps.length) {
     const currStep = steps.at(-1);
     currStep.end = new Date();
