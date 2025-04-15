@@ -1,7 +1,7 @@
 console.log('Ini');
 
-document.getElementById('start-btn').addEventListener('click',  (event) => startTimer());
-document.getElementById('reset-btn').addEventListener('click',  (event) => resetTimer());
+document.getElementById('stop-btn').addEventListener('click',  (event) => stopTimer());
+document.getElementById('reset-btn').addEventListener('click', (event) => resetTimer());
 
 document.getElementById('big-btn').addEventListener('mousedown',  (event) => iniStep());
 document.getElementById('big-btn').addEventListener('mouseup',    (event) => endStep());
@@ -20,35 +20,42 @@ function startTimer() {
     console.log(new Date(), 'START');
     iniTime = new Date();
     timerEl.textContent = formatTime(0);
-    document.getElementById('start-btn').textContent = 'STOP';
     document.getElementById('start-time').textContent = formatDate(iniTime);
-  } else { // STOP
-    console.log(new Date(), 'STOP');
-    if (interval) { 
-      // clearInterval(interval); 
-      iniTime = undefined; 
-    }
   }
+}
+
+function stopTimer() {
+  console.log(new Date(), 'STOP');
+  iniTime = undefined; 
 }
 
 function resetTimer() {
   console.log(new Date(), 'RESET');
   iniTime = undefined;
+  steps.forEach(step => {
+    timelineEl.removeChild(step.el);
+  })
+  steps = [];
   startTimer();
+  render();
 }
 
 
 let iniTime;      // Initial time for the whole counter
 let stepTime;     // Current contraction ini time
-const steps = []; // Contractions
+let steps = []; // Contractions
 
-const tLine = document.getElementById('start-line');
+const startLine = document.getElementById('start-line');
 const timelineEl = document.getElementById('left-timeline');
 const timelineHeight = Math.round(timelineEl.getBoundingClientRect().height);
-tLine.style.top = 0 + 'px';
+startLine.style.top = 0 + 'px';
 
 const maxSeconds = 1 * 20;
 const pxPerMs = timelineHeight / maxSeconds / 1000;
+
+const currentContractionBox = document.getElementById('current-contraction-box');
+const currContWidth = Math.round(document.getElementById('top-timeline').getBoundingClientRect().width);
+const currPxPerMs = currContWidth / 120 / 1000;
 
 
 
@@ -60,13 +67,20 @@ function iniStep() {
   el.setAttribute('class', 'contraction-box');
   timelineEl.appendChild(el);
   steps.push({ ini: stepTime, end: null, el });
-  contrEl.textContent = `Contraction Time: 00:00`;
+  render();
 }
 
 function endStep() {
-  if (steps.length) { steps.at(-1).end = new Date(); }
+  if (steps.length) {
+    const currStep = steps.at(-1);
+    currStep.end = new Date();
+    const posX = Math.round((currStep.end - currStep.ini) * currPxPerMs);
+    document.getElementById('last-contraction-line').style.left = posX + 'px';
+    currentContractionBox.style.width = 0 + 'px';
+  }
   console.log(steps);
-  stepTime = undefined;
+  stepTime = undefined;  
+  render();
 }
 
 function render() {
@@ -75,10 +89,16 @@ function render() {
     const elapsedTime = Math.round(elapsedTimeMs / 1000);
     timerEl.textContent = formatTime(elapsedTimeMs);
     if (stepTime) {
-      contrEl.textContent = `Contraction Time: ${formatContractionTime(new Date() - stepTime)}`
+      contrEl.textContent = `Contraction Time: ${formatContractionTime(new Date() - stepTime)}`;
     }
 
-    if (elapsedTime <= maxSeconds) { tLine.style.top = Math.round(elapsedTimeMs * pxPerMs) + 'px'; }    
+    const currentStep = steps.at(-1);
+    if (currentStep && !currentStep.end) {
+      currentContractionBox.style.width = Math.round((new Date() - currentStep.ini) * currPxPerMs) + 'px';
+    }
+
+    if (elapsedTime <= maxSeconds) { startLine.style.height = Math.round(elapsedTimeMs * pxPerMs) + 'px'; }
+
 
     steps.filter(step => !step.isOut).forEach(step => {
       if (step.ini) {
