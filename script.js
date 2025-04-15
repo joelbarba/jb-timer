@@ -5,8 +5,8 @@ document.getElementById('reset-btn').addEventListener('click',  (event) => reset
 
 document.getElementById('big-btn').addEventListener('mousedown',  (event) => iniStep());
 document.getElementById('big-btn').addEventListener('mouseup',    (event) => endStep());
-// document.getElementById('big-btn').addEventListener('touchstart', (event) => iniStep());
-// document.getElementById('big-btn').addEventListener('touchend',   (event) => endStep());
+document.getElementById('big-btn').addEventListener('touchstart', (event) => iniStep());
+document.getElementById('big-btn').addEventListener('touchend',   (event) => endStep());
 
 
 
