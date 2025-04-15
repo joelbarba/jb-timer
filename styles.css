@@ -1,11 +1,11 @@
 body {
   color: #ffffff;
   font-family: monospace;
-  font-size: 18px;
+  font-size: 15px;
 }
 
 .container {
-  /* border: 1px solid red; */
+  overflow: hidden;
   background: black;
   width: 100dvw;
   height: 100dvh;
@@ -85,8 +85,15 @@ body {
 
 
 #start-line {
-  background: yellow;
-  width: 1px;
-  height: 100%;
   position: absolute;
+  background: yellow;
+  width: 100%;
+  height: 1px;
+}
+.contraction-box {
+  position: absolute;
+  background: yellow;
+  left: 20%;
+  width: 60%;
+  height: 1px;
 }

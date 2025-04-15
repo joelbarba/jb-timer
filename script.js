@@ -1,33 +1,19 @@
 console.log('Ini');
 
-
-// const startEl = document.getElementById('start-time');
-const timerEl = document.getElementById('timer');
-const contrEl = document.getElementById('contr-time');
-timerEl.textContent = '';
-contrEl.textContent = '';
-
-let iniTime;
-
 document.getElementById('start-btn').addEventListener('click',  (event) => startTimer());
 document.getElementById('reset-btn').addEventListener('click',  (event) => resetTimer());
 
 document.getElementById('big-btn').addEventListener('mousedown',  (event) => iniStep());
 document.getElementById('big-btn').addEventListener('mouseup',    (event) => endStep());
-document.getElementById('big-btn').addEventListener('touchstart', (event) => iniStep());
+// document.getElementById('big-btn').addEventListener('touchstart', (event) => iniStep());
 // document.getElementById('big-btn').addEventListener('touchend',   (event) => endStep());
-// document.getElementById('debug-btn').addEventListener('click', (event) => endStep());
-
-const sLine = document.getElementById('start-line');
-const topTL = document.getElementById('top-timeline').getBoundingClientRect();
-const topTLWidth = Math.round(topTL.width);
-const topTLHeight = Math.round(topTL.height);
-console.log(topTLWidth, topTLHeight);
-
-sLine.style.left = 100 + 'px';
 
 
-startTimer();
+
+const timerEl = document.getElementById('timer');
+const contrEl = document.getElementById('contr-time');
+timerEl.textContent = '';
+contrEl.textContent = '';
 
 function startTimer() {
   if (!iniTime) {
@@ -52,33 +38,28 @@ function resetTimer() {
 }
 
 
-const maxTopTLSeconds = 1 * 60;
-const topTLRel = topTLWidth / maxTopTLSeconds / 1000;
+let iniTime;      // Initial time for the whole counter
+let stepTime;     // Current contraction ini time
+const steps = []; // Contractions
 
-const steps = [];
+const tLine = document.getElementById('start-line');
+const timelineEl = document.getElementById('left-timeline');
+const timelineHeight = Math.round(timelineEl.getBoundingClientRect().height);
+tLine.style.top = 0 + 'px';
 
-const interval = setInterval(() => {
-  if (iniTime) {
-    const elapsedTimeMs = (new Date() - iniTime);
-    const elapsedTime = Math.round(elapsedTimeMs / 1000);
-    timerEl.textContent = formatTime(elapsedTimeMs);
-    if (stepTime) {
-      contrEl.textContent = `Contraction Time: ${formatContractionTime(new Date() - stepTime)}`
-    }
-
-    sLine.style.left = Math.round(elapsedTimeMs * topTLRel) + 'px';
-    // steps.forEach(step => {
-
-    // });
-  }
-}, 100);
+const maxSeconds = 1 * 20;
+const pxPerMs = timelineHeight / maxSeconds / 1000;
 
 
-let stepTime;
+
 
 function iniStep() {
   stepTime = new Date();
-  steps.push({ ini: stepTime, end: null });
+  const el = document.createElement('div');
+  el.setAttribute('id', 'step-' + steps.length);
+  el.setAttribute('class', 'contraction-box');
+  timelineEl.appendChild(el);
+  steps.push({ ini: stepTime, end: null, el });
   contrEl.textContent = `Contraction Time: 00:00`;
 }
 
@@ -88,8 +69,41 @@ function endStep() {
   stepTime = undefined;
 }
 
+function render() {
+  if (iniTime) {
+    const elapsedTimeMs = (new Date() - iniTime);
+    const elapsedTime = Math.round(elapsedTimeMs / 1000);
+    timerEl.textContent = formatTime(elapsedTimeMs);
+    if (stepTime) {
+      contrEl.textContent = `Contraction Time: ${formatContractionTime(new Date() - stepTime)}`
+    }
+
+    if (elapsedTime <= maxSeconds) { tLine.style.top = Math.round(elapsedTimeMs * pxPerMs) + 'px'; }    
+
+    steps.filter(step => !step.isOut).forEach(step => {
+      if (step.ini) {
+        const bottom = Math.round((new Date() - step.ini) * pxPerMs);        
+        if (!step.end) {
+          step.el.style.top = 0 + 'px';
+          step.el.style.height = bottom + 'px';
+        } else {
+          const top = Math.round((new Date() - step.end) * pxPerMs);
+          step.el.style.top = top + 'px';
+          step.el.style.height = (bottom - top) + 'px';
+          if (top > timelineHeight) { step.isOut = true; }
+        }
+      }      
+    });
 
 
+  }
+}
+
+
+
+
+startTimer();
+const interval = setInterval(() => render(), 100);
 
 // ---------------------------------------------
 
