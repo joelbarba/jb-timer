@@ -9,7 +9,7 @@ document.getElementById('big-btn').addEventListener('mouseup',    (event) => end
 document.getElementById('big-btn').addEventListener('touchstart', (event) => iniStep());
 document.getElementById('big-btn').addEventListener('touchend',   (event) => endStep());
 
-
+let isTracking = false;
 
 const timerEl = document.getElementById('timer');
 const contrEl = document.getElementById('contr-time');
@@ -70,21 +70,29 @@ function undoStep() {
 
 
 function iniStep() {
-  stepTime = new Date();
-  const el = document.createElement('div');
-  el.setAttribute('id', 'step-' + steps.length);
-  el.setAttribute('class', 'contraction-box');
-  timelineEl.appendChild(el);
-  steps.push({ ini: stepTime, end: null, el });
-  if (steps.length > 1) {
-    const ms = (steps.at(-1).ini - steps.at(-2).end);
-    document.getElementById('time-since-last').textContent = `Time Since Last: ${formatContractionTime(ms)}`;
+  if (!isTracking) {
+    stepTime = new Date();
+    const el = document.createElement('div');
+    el.setAttribute('id', 'step-' + steps.length);
+    el.setAttribute('class', 'contraction-box');
+    timelineEl.appendChild(el);
+    steps.push({ ini: stepTime, end: null, el });
+    if (steps.length > 1) {
+      const ms = (steps.at(-1).ini - steps.at(-2).end);
+      document.getElementById('time-since-last').textContent = `Time Since Last: ${formatContractionTime(ms)}`;
+    }
+    render();
+    isTracking = true;
+    document.getElementById('big-btn').setAttribute('class', 'tracking');
+    document.getElementById('big-btn').textContent = 'STOP';
+  } else {
+    isTracking = false;
   }
-  render();
 }
 
 
 function endStep() {
+  if (isTracking) { return; }
   if (steps.length) {
     const currStep = steps.at(-1);
     currStep.end = new Date();
@@ -96,6 +104,8 @@ function endStep() {
   console.log(steps);
   stepTime = undefined;  
   render();
+  document.getElementById('big-btn').removeAttribute('class');
+  document.getElementById('big-btn').textContent = 'START';
 }
 
 function printData() {
@@ -129,6 +139,7 @@ function render() {
     if (elapsedTime <= maxSeconds) { startLine.style.height = Math.round(elapsedTimeMs * pxPerMs) + 'px'; }
 
 
+    // Boxes Moving down
     steps.filter(step => !step.isOut).forEach(step => {
       if (step.ini) {
         const bottom = Math.round((new Date() - step.ini) * pxPerMs);        

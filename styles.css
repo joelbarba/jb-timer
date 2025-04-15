@@ -50,13 +50,13 @@ body {
   background: red;
   border: 3px solid #ffffff;
   color: white;
-  font-size: 20vw;
+  font-size: 14vw;
   font-weight: bold;
   -webkit-user-select: none;
   user-select: none;
   box-shadow: inset 10px 10px 15px 2px #fff;
 }
-#big-btn:active {
+#big-btn:active, #big-btn.tracking {
   background: #b70000;
   box-shadow: inset -10px 10px 15px 2px #4f4f4f;
 }
