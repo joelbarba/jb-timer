@@ -82,7 +82,16 @@ body {
 .labels {
   margin: 5px 10px;
 }
-
+#contr-time {
+  position: absolute;
+  right: 10px;
+  top: 5px;
+}
+#time-since-last {
+  position: absolute;
+  top: 25px;
+  right: 10px;
+}
 
 #start-line {
   position: absolute;
@@ -103,8 +112,8 @@ body {
   position: absolute;
   background: yellow;
   left: 2px;
-  top: 10%;
-  height: 80%;
+  top: 20%;
+  height: 70%;
   width: 0;
 }
 #last-contraction-line {
@@ -119,11 +128,21 @@ body {
 .marker {
   position: absolute;
   left: 0;
-  width: 20px;
+  width: 30px;
   border-top: 1px solid white;
   padding-top: 5px;
+  font-size: 14px;
+  z-index: 10;
 }
-#marker-15 { top: 25%; }
-#marker-30 { top: 50%; }
-#marker-45 { top: 75%; }
-/* 15*100/60 */
+#marker-05 { top:  8.3%; }  /* 5*100/60 */
+#marker-10 { top: 16.6%; }
+#marker-15 { top: 25.0%; }
+#marker-20 { top: 33.3%; }
+#marker-25 { top: 41.6%; }
+#marker-30 { top: 50.0%; }
+#marker-35 { top: 58.3%; }
+#marker-40 { top: 66.7%; }
+#marker-45 { top: 75.0%; }
+#marker-50 { top: 83.3%; }
+#marker-55 { top: 91.6%; }
+/* #marker-60 { top: 100%; } */
