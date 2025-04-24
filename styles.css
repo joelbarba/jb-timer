@@ -128,7 +128,7 @@ body {
 .marker {
   position: absolute;
   left: 0;
-  width: 30px;
+  width: 40px;
   border-top: 1px solid white;
   padding-top: 5px;
   font-size: 14px;

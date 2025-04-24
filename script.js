@@ -1,3 +1,24 @@
+let iniTime;      // Initial time for the whole counter
+let stepTime;     // Current contraction ini time
+let steps = [];   // Contractions
+let offset = 0;
+
+const startLine = document.getElementById('start-line');
+const timelineEl = document.getElementById('left-timeline');
+const timelineHeight = Math.round(timelineEl.getBoundingClientRect().height);
+startLine.style.top = 0 + 'px';
+
+const initialMaxSeconds = 0.25 * 60; // Initial total time on the left (vertical) timeline
+let maxSeconds = initialMaxSeconds;  // Current total time on the left (vertical) timeline
+let pxPerMs = timelineHeight / maxSeconds / 1000;
+
+const currentContractionBox = document.getElementById('current-contraction-box');
+const currContWidth = Math.round(document.getElementById('top-timeline').getBoundingClientRect().width);
+const currPxPerMs = currContWidth / 60 / 1000; // Total time on the top (horizontal)
+
+
+
+
 document.getElementById('stop-btn').addEventListener('click',  (event) => stopTimer());
 document.getElementById('reset-btn').addEventListener('click', (event) => resetTimer());
 document.getElementById('undo-btn').addEventListener('click',  (event) => undoStep());
@@ -24,10 +45,15 @@ contrEl.textContent = '';
 function startTimer() {
   const iniTimeStr = window.localStorage.getItem('iniTime');
   if (iniTimeStr && new Date() - new Date(iniTimeStr) < 5 * 60 * 60 * 1000) { // If started < 5 hours ago, reuse
-    iniTime = new Date(iniTimeStr);
+    iniTime = new Date(iniTimeStr);    
     steps = JSON.parse(window.localStorage.getItem('steps')) || [];
     steps.forEach(step => { step.ini = new Date(step.ini); step.end = step.end ? new Date(step.end) : null; });
-    renderAllSteps();
+    if (steps.length && !steps.at(-1).end) { 
+      stepTime = steps.at(-1).ini; 
+      document.getElementById('big-btn').setAttribute('class', 'tracking');
+      document.getElementById('big-btn').textContent = 'STOP';
+    }
+    fullRender();
   }
 
   if (!iniTime) {
@@ -52,27 +78,18 @@ function resetTimer() {
   steps = [];
   window.localStorage.removeItem('iniTime');
   window.localStorage.removeItem('steps');
+  maxSeconds = initialMaxSeconds;
+  pxPerMs = timelineHeight / maxSeconds / 1000;
+  currentContractionBox.style.width = '0px';
+  document.getElementById('last-contraction-line').style.left = '0px';
+  stepTime = undefined;  
+  document.getElementById('big-btn').removeAttribute('class');
+  document.getElementById('big-btn').textContent = 'START';
   startTimer();
-  render();
+  fullRender();
 }
 
 
-let iniTime;      // Initial time for the whole counter
-let stepTime;     // Current contraction ini time
-let steps = [];   // Contractions
-let offset = 0;
-
-const startLine = document.getElementById('start-line');
-const timelineEl = document.getElementById('left-timeline');
-const timelineHeight = Math.round(timelineEl.getBoundingClientRect().height);
-startLine.style.top = 0 + 'px';
-
-const maxSeconds = 2 * 60;  // Total time on the left (vertical) timeline
-const pxPerMs = timelineHeight / maxSeconds / 1000;
-
-const currentContractionBox = document.getElementById('current-contraction-box');
-const currContWidth = Math.round(document.getElementById('top-timeline').getBoundingClientRect().width);
-const currPxPerMs = currContWidth / 60 / 1000; // Total time on the top (horizontal)
 
 
 function undoStep() {
@@ -125,21 +142,6 @@ function endStep() {
   document.getElementById('big-btn').textContent = 'START';
 }
 
-function printData() {
-  if (steps.length) {
-    let tBetween = 0;
-    for (let t = 1; t < steps.length; t++) { tBetween += (steps[t].ini - steps[t-1].end) / 1000; }
-    document.getElementById('total-contractions').textContent   = steps.length;
-    document.getElementById('avg-contraction-time').textContent = Math.round(10 * steps.reduce((a,v) => a + ((v.end - v.ini) / 1000), 0) / steps.length) / 10 + ' sec';
-    document.getElementById('avg-time-between').textContent     = Math.round(10 * tBetween / steps.length) / 10  + ' sec';
-  } else {
-    document.getElementById('total-contractions').textContent   = '0';
-    document.getElementById('avg-contraction-time').textContent = '0';
-    document.getElementById('avg-time-between').textContent     = '0';
-  }
-}
-
-
 
 function render() {
   if (iniTime) {
@@ -156,15 +158,20 @@ function render() {
     }
 
     // If the time reaches the end, offset it a bit
-    if (elapsedTime - offset > maxSeconds) {
-      const delta = 10 * 60;  // Add 10 min (600sec)
-      offset += delta;
-      steps.forEach(step => { // Move all boxes up
-        const newTop = Math.round(+step.el.style.top.split('px')[0] - (delta * 1000 * pxPerMs));
-        step.el.style.top = newTop + 'px';
-      });
+    if (elapsedTime - offset > maxSeconds * 0.95) {
+      maxSeconds = maxSeconds * 2;
+      pxPerMs = timelineHeight / maxSeconds / 1000;
+      fullRender();
+
+      // const delta = 10 * 60;  // Add 10 min (600sec)
+      // offset += delta;
+      // steps.forEach(step => { // Move all boxes up
+      //   const newTop = Math.round(+step.el.style.top.split('px')[0] - (delta * 1000 * pxPerMs));
+      //   step.el.style.top = newTop + 'px';
+      // });
     }
 
+    // Print the vertical current time line
     const nowLine = (elapsedTimeMs - (offset * 1000)) * pxPerMs;
     startLine.style.height = Math.round(nowLine) + 'px';
     
@@ -200,7 +207,7 @@ function render() {
   }
 }
 
-function renderAllSteps() {
+function fullRender() {
   steps.forEach((step, ind) => {
     if (!step.el) {
       step.el = document.createElement('div');
@@ -223,8 +230,43 @@ function renderAllSteps() {
   });
   render();
   printData();
+  printMarkers();
 }
 
+
+function printData() {
+  if (steps.length) {
+    let tBetween = 0;
+    for (let t = 1; t < steps.length; t++) { tBetween += (steps[t].ini - steps[t-1].end) / 1000; }
+    document.getElementById('total-contractions').textContent   = steps.length;
+    document.getElementById('avg-contraction-time').textContent = Math.round(10 * steps.reduce((a,v) => a + v.end ? ((v.end - v.ini) / 1000) : 0, 0) / steps.length) / 10 + ' sec';
+    document.getElementById('avg-time-between').textContent     = Math.round(10 * tBetween / steps.length) / 10  + ' sec';
+  } else {
+    document.getElementById('total-contractions').textContent   = '0';
+    document.getElementById('avg-contraction-time').textContent = '0';
+    document.getElementById('avg-time-between').textContent     = '0';
+  }
+}
+
+
+
+function printMarkers() {
+  console.log('maxSeconds = ', maxSeconds);
+  const markers = document.getElementsByClassName('marker');
+  for (let i = 0; i < markers.length; i++) {
+
+    if (maxSeconds <= 60) { // Seconds
+      const sec = maxSeconds * (i + 1) / 12;
+      markers[i].textContent = (Math.round(sec * 100) / 100) + 's';
+      
+    } else { // Minutes
+      const tick = maxSeconds * (i + 1) / (12 * 60);
+      const min = Math.floor(tick);
+      const sec = Math.round((tick - min) * 60);
+      markers[i].textContent = `${min}:${pad(sec, 2, '0')}`;
+    }
+  }
+}
 
 
 
