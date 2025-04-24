@@ -1,5 +1,3 @@
-console.log('Ini');
-
 document.getElementById('stop-btn').addEventListener('click',  (event) => stopTimer());
 document.getElementById('reset-btn').addEventListener('click', (event) => resetTimer());
 document.getElementById('undo-btn').addEventListener('click',  (event) => undoStep());
@@ -24,12 +22,22 @@ timerEl.textContent = '';
 contrEl.textContent = '';
 
 function startTimer() {
-  if (!iniTime) {
-    console.log(new Date(), 'START');
-    iniTime = new Date();
-    timerEl.textContent = formatTime(0);
-    document.getElementById('start-time').textContent = formatDate(iniTime);
+  const iniTimeStr = window.localStorage.getItem('iniTime');
+  if (iniTimeStr && new Date() - new Date(iniTimeStr) < 5 * 60 * 60 * 1000) { // If started < 5 hours ago, reuse
+    iniTime = new Date(iniTimeStr);
+    steps = JSON.parse(window.localStorage.getItem('steps')) || [];
+    steps.forEach(step => { step.ini = new Date(step.ini); step.end = step.end ? new Date(step.end) : null; });
+    renderAllSteps();
   }
+
+  if (!iniTime) {
+    iniTime = new Date();
+    window.localStorage.setItem('iniTime', iniTime);
+  }
+  
+  console.log(iniTime, 'START');
+  timerEl.textContent = formatTime(0);
+  document.getElementById('start-time').textContent = formatDate(iniTime);  
 }
 
 function stopTimer() {
@@ -40,8 +48,10 @@ function stopTimer() {
 function resetTimer() {
   console.log(new Date(), 'RESET');
   iniTime = undefined;
-  steps.forEach(step => timelineEl.removeChild(step.el));
+  steps.forEach(step => step.el && timelineEl.removeChild(step.el));
   steps = [];
+  window.localStorage.removeItem('iniTime');
+  window.localStorage.removeItem('steps');
   startTimer();
   render();
 }
@@ -57,7 +67,7 @@ const timelineEl = document.getElementById('left-timeline');
 const timelineHeight = Math.round(timelineEl.getBoundingClientRect().height);
 startLine.style.top = 0 + 'px';
 
-const maxSeconds = 60 * 60;  // Total time on the left (vertical) timeline
+const maxSeconds = 2 * 60;  // Total time on the left (vertical) timeline
 const pxPerMs = timelineHeight / maxSeconds / 1000;
 
 const currentContractionBox = document.getElementById('current-contraction-box');
@@ -69,12 +79,15 @@ function undoStep() {
   if (steps.length) {
     timelineEl.removeChild(steps.at(-1).el);
     steps = steps.slice(0, -1);
+    window.localStorage.setItem('steps', JSON.stringify(steps.map(s => ({ ini: s.ini, end: s.end }))));
     console.log(steps);
     stepTime = undefined;
     printData();
     render(); 
   }
 }
+
+
 
 
 function iniStep() {  
@@ -84,6 +97,7 @@ function iniStep() {
   el.setAttribute('class', 'contraction-box');
   timelineEl.appendChild(el);
   steps.push({ ini: stepTime, end: null, el });
+  window.localStorage.setItem('steps', JSON.stringify(steps.map(s => ({ ini: s.ini, end: s.end }))));
   if (steps.length > 1) {
     const ms = (steps.at(-1).ini - steps.at(-2).end);
     document.getElementById('time-since-last').textContent = `Time Since Last: ${formatContractionTime(ms)}`;
@@ -98,6 +112,7 @@ function endStep() {
   if (steps.length) {
     const currStep = steps.at(-1);
     currStep.end = new Date();
+    window.localStorage.setItem('steps', JSON.stringify(steps.map(s => ({ ini: s.ini, end: s.end }))));
     const posX = Math.round((currStep.end - currStep.ini) * currPxPerMs);
     document.getElementById('last-contraction-line').style.left = posX + 'px';
     currentContractionBox.style.width = 0 + 'px';
@@ -124,6 +139,8 @@ function printData() {
   }
 }
 
+
+
 function render() {
   if (iniTime) {
     const elapsedTimeMs = (new Date() - iniTime);
@@ -148,7 +165,7 @@ function render() {
       });
     }
 
-    let nowLine = (elapsedTimeMs - (offset * 1000)) * pxPerMs;
+    const nowLine = (elapsedTimeMs - (offset * 1000)) * pxPerMs;
     startLine.style.height = Math.round(nowLine) + 'px';
     
     // Print contraction boxes
@@ -181,6 +198,31 @@ function render() {
 
 
   }
+}
+
+function renderAllSteps() {
+  steps.forEach((step, ind) => {
+    if (!step.el) {
+      step.el = document.createElement('div');
+      step.el.setAttribute('id', 'step-' + (ind + 1));
+      step.el.setAttribute('class', 'contraction-box');
+      timelineEl.appendChild(step.el);
+    }
+
+    const top = Math.round((step.ini - iniTime - (offset * 1000)) * pxPerMs);
+    step.el.style.top = top + 'px';
+    if (step.end) {
+      const bottom = Math.round((step.end - iniTime - (offset * 1000)) * pxPerMs);
+      step.el.style.height = (bottom - top) + 'px';
+    } else {
+      const elapsedTimeMs = (new Date() - iniTime);
+      const nowLine = (elapsedTimeMs - (offset * 1000)) * pxPerMs;
+      step.el.style.height = (nowLine - top) + 'px';
+    }
+
+  });
+  render();
+  printData();
 }
 
 
