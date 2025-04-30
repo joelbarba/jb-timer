@@ -237,9 +237,14 @@ function fullRender() {
 function printData() {
   if (steps.length) {
     let tBetween = 0;
-    for (let t = 1; t < steps.length; t++) { tBetween += (steps[t].ini - steps[t-1].end) / 1000; }
+    let cTime = 0;
+    for (let t = 1; t < steps.length; t++) {
+      if (steps[t].end) { cTime += steps[t].end - steps[t].ini; }
+      if (t > 0) { tBetween += (steps[t].ini - steps[t-1].end) / 1000; }
+    }
     document.getElementById('total-contractions').textContent   = steps.length;
-    document.getElementById('avg-contraction-time').textContent = Math.round(10 * steps.reduce((a,v) => a + v.end ? ((v.end - v.ini) / 1000) : 0, 0) / steps.length) / 10 + ' sec';
+    document.getElementById('avg-contraction-time').textContent = Math.round(10 * (cTime / 1000) / steps.length) / 10 + ' sec';
+    // document.getElementById('avg-contraction-time').textContent = Math.round(10 * steps.reduce((a,v) => a + v.end ? ((v.end - v.ini) / 1000) : 0, 0) / steps.length) / 10 + ' sec';
     document.getElementById('avg-time-between').textContent     = Math.round(10 * tBetween / steps.length) / 10  + ' sec';
   } else {
     document.getElementById('total-contractions').textContent   = '0';
