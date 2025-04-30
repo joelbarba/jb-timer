@@ -241,12 +241,12 @@ function printData() {
     let cTime = 0;
     for (let t = 1; t < steps.length; t++) {
       if (steps[t].end) { cTime += steps[t].end - steps[t].ini; }
-      if (t > 0) { tBetween += (steps[t].ini - steps[t-1].end) / 1000; }
+      if (t > 0) { tBetween += steps[t].ini - steps[t-1].end; }
     }
     document.getElementById('total-contractions').textContent   = steps.length;
     document.getElementById('avg-contraction-time').textContent = Math.round(10 * (cTime / 1000) / steps.length) / 10 + ' sec';
     // document.getElementById('avg-contraction-time').textContent = Math.round(10 * steps.reduce((a,v) => a + v.end ? ((v.end - v.ini) / 1000) : 0, 0) / steps.length) / 10 + ' sec';
-    document.getElementById('avg-time-between').textContent     = Math.round(10 * tBetween / sBetween) / 10  + ' sec';
+    document.getElementById('avg-time-between').textContent     =  formatTime(tBetween / sBetween);
   } else {
     document.getElementById('total-contractions').textContent   = '0';
     document.getElementById('avg-contraction-time').textContent = '0';
