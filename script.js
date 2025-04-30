@@ -14,7 +14,7 @@ let pxPerMs = timelineHeight / maxSeconds / 1000;
 
 const currentContractionBox = document.getElementById('current-contraction-box');
 const currContWidth = Math.round(document.getElementById('top-timeline').getBoundingClientRect().width);
-const currPxPerMs = currContWidth / 60 / 1000; // Total time on the top (horizontal)
+const currPxPerMs = currContWidth / 120 / 1000; // Total time on the top (horizontal)
 
 
 
@@ -237,6 +237,7 @@ function fullRender() {
 function printData() {
   if (steps.length) {
     let tBetween = 0;
+    const sBetween = Math.max(steps.length - 1, 1);
     let cTime = 0;
     for (let t = 1; t < steps.length; t++) {
       if (steps[t].end) { cTime += steps[t].end - steps[t].ini; }
@@ -245,7 +246,7 @@ function printData() {
     document.getElementById('total-contractions').textContent   = steps.length;
     document.getElementById('avg-contraction-time').textContent = Math.round(10 * (cTime / 1000) / steps.length) / 10 + ' sec';
     // document.getElementById('avg-contraction-time').textContent = Math.round(10 * steps.reduce((a,v) => a + v.end ? ((v.end - v.ini) / 1000) : 0, 0) / steps.length) / 10 + ' sec';
-    document.getElementById('avg-time-between').textContent     = Math.round(10 * tBetween / steps.length) / 10  + ' sec';
+    document.getElementById('avg-time-between').textContent     = Math.round(10 * tBetween / sBetween) / 10  + ' sec';
   } else {
     document.getElementById('total-contractions').textContent   = '0';
     document.getElementById('avg-contraction-time').textContent = '0';
