@@ -8,7 +8,7 @@ const timelineEl = document.getElementById('left-timeline');
 const timelineHeight = Math.round(timelineEl.getBoundingClientRect().height);
 startLine.style.top = 0 + 'px';
 
-const initialMaxSeconds = 0.25 * 60; // Initial total time on the left (vertical) timeline
+const initialMaxSeconds = 60; // Initial total time on the left (vertical) timeline
 let maxSeconds = initialMaxSeconds;  // Current total time on the left (vertical) timeline
 let pxPerMs = timelineHeight / maxSeconds / 1000;
 
@@ -135,7 +135,7 @@ function endStep() {
     currentContractionBox.style.width = 0 + 'px';
     printData();
   }
-  console.log(steps);
+  console.log(steps.map(s => ({ duration: s.end - s.ini, ...s })));
   stepTime = undefined;  
   render();
   document.getElementById('big-btn').removeAttribute('class');
@@ -160,15 +160,9 @@ function render() {
     // If the time reaches the end, offset it a bit
     if (elapsedTime - offset > maxSeconds * 0.95) {
       maxSeconds = maxSeconds * 2;
+      if (maxSeconds === 480) { maxSeconds = 900; }  // 8min -> 15min
       pxPerMs = timelineHeight / maxSeconds / 1000;
       fullRender();
-
-      // const delta = 10 * 60;  // Add 10 min (600sec)
-      // offset += delta;
-      // steps.forEach(step => { // Move all boxes up
-      //   const newTop = Math.round(+step.el.style.top.split('px')[0] - (delta * 1000 * pxPerMs));
-      //   step.el.style.top = newTop + 'px';
-      // });
     }
 
     // Print the vertical current time line
@@ -183,25 +177,6 @@ function render() {
         step.el.style.height = (nowLine - top) + 'px';
       }      
     });
-
-
-    // if (elapsedTime <= maxSeconds) { startLine.style.height = Math.round(nowLine) + 'px'; }
-
-    // Boxes Moving down
-    // steps.filter(step => !step.isOut).forEach(step => {
-    //   if (step.ini) {
-    //     const bottom = Math.round((new Date() - step.ini) * pxPerMs);        
-    //     if (!step.end) {
-    //       step.el.style.top = 0 + 'px';
-    //       step.el.style.height = bottom + 'px';
-    //     } else {
-    //       const top = Math.round((new Date() - step.end) * pxPerMs);
-    //       step.el.style.top = top + 'px';
-    //       step.el.style.height = (bottom - top) + 'px';
-    //       if (top > timelineHeight) { step.isOut = true; }
-    //     }
-    //   }      
-    // });
 
 
   }
@@ -239,14 +214,13 @@ function printData() {
     let tBetween = 0;
     const sBetween = Math.max(steps.length - 1, 1);
     let cTime = 0;
-    for (let t = 1; t < steps.length; t++) {
+    for (let t = 0; t < steps.length; t++) {
       if (steps[t].end) { cTime += steps[t].end - steps[t].ini; }
       if (t > 0) { tBetween += steps[t].ini - steps[t-1].end; }
     }
     document.getElementById('total-contractions').textContent   = steps.length;
-    document.getElementById('avg-contraction-time').textContent = Math.round(10 * (cTime / 1000) / steps.length) / 10 + ' sec';
-    // document.getElementById('avg-contraction-time').textContent = Math.round(10 * steps.reduce((a,v) => a + v.end ? ((v.end - v.ini) / 1000) : 0, 0) / steps.length) / 10 + ' sec';
-    document.getElementById('avg-time-between').textContent     =  formatTime(tBetween / sBetween);
+    document.getElementById('avg-contraction-time').textContent = Math.round(10 * (cTime / 1000) / steps.length) / 10 + ' seconds';
+    document.getElementById('avg-time-between').textContent     = Math.round((tBetween / 100) / sBetween) / 10 + ' seconds';
   } else {
     document.getElementById('total-contractions').textContent   = '0';
     document.getElementById('avg-contraction-time').textContent = '0';
