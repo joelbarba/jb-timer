@@ -13,6 +13,8 @@ This is a Vanilla JS app, no dependencies needed, just run it on the browser.
 
 The app is meant to run on a **mobile screen** (I'd never do that on a large screen, the css is not ready).
 
+You can find a running instance on https://jb-timer.netlify.app/
+
 
 ## Features
 
@@ -29,7 +31,7 @@ When you load the app it starts running. It saves the data in your localstorage,
 You can manually reset the time tracking with the **RESET** button.
 
 ### Undo
-In case you mark a contraction with the **START** button but it was actually a false one, you can undo the mark with the **UNDO** button.
+In case you mark a contraction START but it was actually not real, you can undo it with the **UNDO** button.
 
 ### End
 Whenever you are done with the tracking, you can stop it with the **END** button.
